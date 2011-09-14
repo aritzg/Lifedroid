@@ -7,7 +7,12 @@ public abstract class GenericManager {
 	public GenericManager(String server, int port, String serviceBaseURL) {
 		_rClient = new RESTClient(server, port, serviceBaseURL);
 	}
+	
+	public void init(String user, String pass){
+		_rClient.init(user, pass);
+	}
 
-	private RESTClient _rClient = null;
+	protected RESTClient _rClient = null;
+	protected String _serviceClassName = null;
 
 }
