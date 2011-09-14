@@ -2,12 +2,16 @@ package net.sareweb.lifedroid.client;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
+
+import sun.net.www.protocol.http.AuthCache;
 
 public class RESTClient {
 
@@ -21,23 +25,20 @@ public class RESTClient {
 
 		HttpHost targetHost = new HttpHost(_server, _port, "http");
 		DefaultHttpClient httpclient = new DefaultHttpClient();
+		
 		httpclient.getCredentialsProvider().setCredentials(
 				new AuthScope(targetHost.getHostName(), targetHost.getPort()),
 				new UsernamePasswordCredentials(user, pass));
 		
-		// Create AuthCache instance
-        /*
-         * AuthCache authCache = new BasicAuthCache();
-        // Generate BASIC scheme object and add it to the local
-        // auth cache
-        BasicScheme basicAuth = new BasicScheme();
-        authCache.put(targetHost, basicAuth);
+		//new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+		
+		
+		HttpPost post = new HttpPost("/tunnel-web/secure/json");
+		
+		
+		
 
-        // Add AuthCache to the execution context
-        BasicHttpContext ctx = new BasicHttpContext();
-        ctx.setAttribute(ClientContext.AUTH_CACHE, authCache);
-
-        HttpPost post = new HttpPost("/tunnel-web/secure/json");*/
+        
 
 	}
 
