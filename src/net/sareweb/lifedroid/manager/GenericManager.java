@@ -8,8 +8,8 @@ public abstract class GenericManager {
 		_rClient = new RESTClient(server, port, serviceBaseURL);
 	}
 	
-	public void init(String user, String pass){
-		_rClient.init(user, pass);
+	public void setCredentials(String user, String pass){
+		_rClient.setCredentials(user, pass);
 	}
 
 	protected RESTClient _rClient = null;
