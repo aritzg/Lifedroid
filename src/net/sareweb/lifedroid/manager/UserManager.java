@@ -1,10 +1,6 @@
 package net.sareweb.lifedroid.manager;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
+import java.util.HashMap;
 
 public class UserManager extends GenericManager {
 
@@ -12,15 +8,16 @@ public class UserManager extends GenericManager {
 		super(server, port, serviceBaseURL);
 		_serviceClassName = "com.liferay.portal.service.UserServiceUtil";
 	}
-	
-	public String getUser(String userId){
-		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		
-		params.add(new BasicNameValuePair("serviceMethodName", "getUserById"));
-		params.add(new BasicNameValuePair("serviceParameters", "[userId]"));
-		params.add(new BasicNameValuePair("userId", userId));
-		
-		return _rClient.runRequest(params);
+
+	public String getUserById(String userId) {
+
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("userId", userId);
+
+		return _rClient.runGET(_serviceClassName, _METHOD_NAME_GET_USER_BY_ID,
+				params);
 	}
+
+	private String _METHOD_NAME_GET_USER_BY_ID = "getUserById";
 
 }

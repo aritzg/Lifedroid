@@ -1,17 +1,17 @@
 package net.sareweb.lifedroid.client;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Iterator;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
@@ -25,72 +25,93 @@ public class RESTClient {
 		_port = port;
 		_serviceBaseURL = serviceBaseURL;
 		_httpClient = new DefaultHttpClient();
-		
+
 		_targetHost = new HttpHost(_server, _port);
-		
-		
+
 	}
 
 	public void setCredentials(String user, String pass) {
-		_httpClient.getCredentialsProvider().setCredentials(
-				new AuthScope(_targetHost.getHostName(), _targetHost.getPort()),
-				new UsernamePasswordCredentials(user, pass));
+		_user = user;
+		_pass = pass;
+		_httpClient.getCredentialsProvider()
+				.setCredentials(
+						new AuthScope(_targetHost.getHostName(),
+								_targetHost.getPort()),
+						new UsernamePasswordCredentials(user, pass));
 	}
-	
-	
-	public String runRequest(List<NameValuePair> params){
-		
-		BasicHttpContext ctx = new BasicHttpContext(); 
-        HttpPost post = new HttpPost(_serviceBaseURL);
-        
-        UrlEncodedFormEntity entity = null;
+
+	public String runGET(String serviceClassName, String serviceMethodName,
+			HashMap<String, String> params) {
+		BasicHttpContext localContext = new BasicHttpContext();
+		BasicScheme basicAuth = new BasicScheme();
+		localContext.setAttribute("preemptive-auth", basicAuth);
+		String fullUrl = "http://" + _user + ":" + _pass + "@" + _server + ":"
+				+ _port + _serviceBaseURL + "?serviceClassName="
+				+ serviceClassName + "&serviceMethodName=" + serviceMethodName
+				+ "&serviceParameters=" + getParamNameString(params)
+				+ getNameValuePairsString(params);
+		Log.d(TAG, "Full URL: " + fullUrl);
+		HttpGet httpGet = new HttpGet(fullUrl);
+		httpGet.setHeader("Content-Type", "application/xml");
+		HttpResponse response;
 		try {
-			entity = new UrlEncodedFormEntity(params, "UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-        post.setEntity(entity);
-        
-        Log.d(TAG,"aaaaaa");
-        try {
-			HttpResponse resp = _httpClient.execute(_targetHost, post, ctx);
-			
-		
-			
-			return EntityUtils.toString(resp.getEntity());
+			response = _httpClient.execute(_targetHost, httpGet, localContext);
+			HttpEntity entity = response.getEntity();
+
+			Object content = EntityUtils.toString(entity);
+
+			Log.d(TAG, "RESULT: " + content.toString());
+			_httpClient.getConnectionManager().shutdown();
+			return content.toString();
 		} catch (ClientProtocolException e) {
-			Log.d(TAG,"1");
-			e.printStackTrace();
+			Log.d(TAG, "ClientProtocolException in REST GET", e);
 		} catch (IOException e) {
-			Log.d(TAG,"2");
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			Log.d(TAG,"3");
-			e.printStackTrace();
-		} catch (Exception e) {
-			Log.d(TAG,"4");
-			e.printStackTrace();
+			Log.d(TAG, "IOException in REST GET", e);
+		} finally {
+			_httpClient.getConnectionManager().shutdown();
 		}
-        Log.d(TAG,"bbbbbb");
-        return null;
-
+		return "";
 	}
-	
 
+	private String getParamNameString(HashMap<String, String> params) {
+		String names = "";
+		if (params == null)
+			return names;
+		Iterator<String> paramNames = params.keySet().iterator();
+		while (paramNames.hasNext()) {
+			String name = (String) paramNames.next();
+			names = names + name;
+			if (paramNames.hasNext())
+				names = names + ",";
+		}
+		return "[" + names + "]";
+	}
 
-public void  closeConn(){
-	_httpClient.getConnectionManager().shutdown();
-}
-	
+	private String getNameValuePairsString(HashMap<String, String> params) {
+		String nameValues = "";
+		if (params == null)
+			return nameValues;
+		Iterator<String> paramNames = params.keySet().iterator();
+		while (paramNames.hasNext()) {
+			String name = (String) paramNames.next();
+			nameValues = "&" + name + "=" + params.get(name);
+		}
+		return nameValues;
+	}
+
+	public void closeConn() {
+		_httpClient.getConnectionManager().shutdown();
+	}
 
 	private String _server;
 	private int _port;
 	private String _serviceBaseURL;
 	private DefaultHttpClient _httpClient;
 	private HttpHost _targetHost;
-	
+
+	private String _user;
+	private String _pass;
+
 	private static final String TAG = "RESTClient";
 
 }
