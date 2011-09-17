@@ -58,11 +58,11 @@ public class RESTClient {
 			response = _httpClient.execute(_targetHost, httpGet, localContext);
 			HttpEntity entity = response.getEntity();
 
-			Object content = EntityUtils.toString(entity);
-
-			Log.d(TAG, "RESULT: " + content.toString());
+			String content = EntityUtils.toString(entity);
+			Log.d(TAG, "RESULT: " + content);
 			_httpClient.getConnectionManager().shutdown();
-			return content.toString();
+			Log.d(TAG, "conn manager shut down");
+			return content;
 		} catch (ClientProtocolException e) {
 			Log.d(TAG, "ClientProtocolException in REST GET", e);
 		} catch (IOException e) {

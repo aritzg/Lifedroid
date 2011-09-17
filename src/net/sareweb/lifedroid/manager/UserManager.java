@@ -22,7 +22,6 @@ public class UserManager extends GenericManager {
 
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("userId", userId);
-
 		return _rClient.runGET(_serviceClassName, _METHOD_NAME_GET_USER_BY_ID,
 				params);
 	}
