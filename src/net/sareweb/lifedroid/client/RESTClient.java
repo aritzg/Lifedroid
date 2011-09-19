@@ -46,10 +46,21 @@ public class RESTClient {
 		BasicScheme basicAuth = new BasicScheme();
 		localContext.setAttribute("preemptive-auth", basicAuth);
 		String fullUrl = "http://" + _user + ":" + _pass + "@" + _server + ":"
-				+ _port + _serviceBaseURL + "?serviceClassName="
-				+ serviceClassName + "&serviceMethodName=" + serviceMethodName
-				+ "&serviceParameters=" + getParamNameString(params)
-				+ getNameValuePairsString(params);
+				+ _port + _serviceBaseURL;
+
+		if (serviceClassName != null && !serviceClassName.equals("")) {
+			fullUrl += "?serviceClassName=" + serviceClassName;
+		}
+
+		if (serviceMethodName != null && !serviceMethodName.equals("")) {
+			fullUrl += "&serviceMethodName=" + serviceMethodName;
+		}
+
+		if (params != null && params.size() > 0) {
+			fullUrl += "&serviceParameters=" + getParamNameString(params)
+					+ getNameValuePairsString(params);
+		}
+
 		Log.d(TAG, "Full URL: " + fullUrl);
 		HttpGet httpGet = new HttpGet(fullUrl);
 		httpGet.setHeader("Content-Type", "application/xml");
@@ -60,15 +71,11 @@ public class RESTClient {
 
 			String content = EntityUtils.toString(entity);
 			Log.d(TAG, "RESULT: " + content);
-			_httpClient.getConnectionManager().shutdown();
-			Log.d(TAG, "conn manager shut down");
 			return content;
 		} catch (ClientProtocolException e) {
 			Log.d(TAG, "ClientProtocolException in REST GET", e);
 		} catch (IOException e) {
 			Log.d(TAG, "IOException in REST GET", e);
-		} finally {
-			_httpClient.getConnectionManager().shutdown();
 		}
 		return "";
 	}
@@ -101,6 +108,7 @@ public class RESTClient {
 
 	public void closeConn() {
 		_httpClient.getConnectionManager().shutdown();
+		Log.d(TAG, "conn manager shut down");
 	}
 
 	private String _server;

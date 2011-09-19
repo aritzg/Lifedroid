@@ -2,11 +2,22 @@ package net.sareweb.lifedroid.manager;
 
 import java.util.HashMap;
 
+import android.util.Log;
+
 public class UserManager extends GenericManager {
 
 	public UserManager(String server, int port, String serviceBaseURL) {
 		super(server, port, serviceBaseURL);
 		_serviceClassName = "com.liferay.portal.service.UserServiceUtil";
+	}
+
+	public boolean validateUserCredentials() {
+		String tmp = _rClient.runGET(null, null, null);
+		if (!tmp.equals("")) {
+			Log.w(TAG, "Wrong Credentials!");
+			return false;
+		}
+		return true;
 	}
 
 	public String getUserByEmailAddress(String companyId, String emailAddress) {
@@ -38,5 +49,7 @@ public class UserManager extends GenericManager {
 	private String _METHOD_NAME_GET_USER_BY_EMAIL_ADDRESS = "getUserByEmailAddress";
 	private String _METHOD_NAME_GET_USER_BY_ID = "getUserById";
 	private String _METHOD_NAME_GET_USER_BY_SCREEN_NAME = "getUserByScreenName";
+
+	private static final String TAG = "UserManager";
 
 }
