@@ -18,6 +18,7 @@ public class GenericParser {
 		try {
 			return parse(new JSONObject(jsonString));
 		} catch (JSONException e) {
+			Log.e(TAG, "Error Creating JSONObject", e);
 			return null;
 		}
 	}
@@ -25,25 +26,29 @@ public class GenericParser {
 	public Object parse(JSONObject jsonObj) {
 
 		Field[] fields = _clazz.getDeclaredFields();
-		if (fields == null)
+		if (fields == null) {
+			Log.d(TAG, "Was that an empty class?");
 			return null;
+		}
 		Object parsed = null;
 		try {
+			// Create a new instance of the provided class
 			parsed = _clazz.newInstance();
 		} catch (InstantiationException e1) {
-			e1.printStackTrace();
+			Log.e(TAG, "Could not instantiate class!", e1);
 			return null;
 		} catch (IllegalAccessException e1) {
-			e1.printStackTrace();
+			Log.e(TAG, "Could not access class!", e1);
 			return null;
 		}
 		for (int i = 0; i < fields.length; i++) {
 			Field f = fields[i];
 			try {
-
+				// Obtain setter method for each field
 				Method m = parsed.getClass().getMethod(
 						"set" + capitalizeString(f.getName()), f.getType());
-
+				// and ivoke it passing as parameter the corresponding
+				// JSONObject's field
 				m.invoke(parsed, jsonObj.get(f.getName()));
 
 			} catch (Exception e) {
@@ -56,6 +61,8 @@ public class GenericParser {
 	}
 
 	private String capitalizeString(String string1) {
+		// This method return the string with its first cahr passed to UPPER
+		// CASE
 		if (string1 == null || string1.length() < 1)
 			return string1;
 		return string1.substring(0, 1).toUpperCase() + string1.substring(1);
