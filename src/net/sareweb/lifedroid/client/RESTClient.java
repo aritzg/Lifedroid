@@ -11,6 +11,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
@@ -77,6 +78,37 @@ public class RESTClient {
 		} catch (IOException e) {
 			Log.d(TAG, "IOException in REST GET", e);
 		}
+		return "";
+	}
+	
+	
+	public String runPOST(String serviceClassName, String serviceMethodName,
+			HashMap<String, String> params) {
+		
+		BasicHttpContext localContext = new BasicHttpContext();
+		BasicScheme basicAuth = new BasicScheme();
+		localContext.setAttribute("preemptive-auth", basicAuth);
+		String fullUrl = "http://" + _user + ":" + _pass + "@" + _server + ":"
+				+ _port + _serviceBaseURL;
+
+		if (serviceClassName != null && !serviceClassName.equals("")) {
+			fullUrl += "?serviceClassName=" + serviceClassName;
+		}
+
+		if (serviceMethodName != null && !serviceMethodName.equals("")) {
+			fullUrl += "&serviceMethodName=" + serviceMethodName;
+		}
+
+		if (params != null && params.size() > 0) {
+			fullUrl += "&serviceParameters=" + getParamNameString(params)
+					+ getNameValuePairsString(params);
+		}
+
+		Log.d(TAG, "Full URL: " + fullUrl);
+		
+		HttpPost post = new HttpPost(fullUrl);
+		
+		
 		return "";
 	}
 
