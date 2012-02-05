@@ -12,7 +12,6 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	public LDSQLiteHelper(Context context, String name, CursorFactory factory,int version) {
 		super(context, name, factory, version);
 		composeCreateSQL();
-
 	}
 
 	private void composeCreateSQL() {
@@ -28,6 +27,19 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		 db.execSQL(_sqlCreate);
 	}
 
-	private String _sqlCreate = "CREATE TABLE Usuarios (codigo INTEGER, nombre TEXT)";
+	private String _sqlCreate = "";
+	
+	public abstract T persist(T t);
+	
+	public abstract T getById(String Id);
+	
+	public int delete(T t){
+		return delete(t.id);
+	}
+	
+	public int delete(String id){
+		String[] whereArgs = {id};
+		return this.getWritableDatabase().delete(T.tableName, "_id=?", whereArgs);
+	}
 
 }
