@@ -1,6 +1,7 @@
 package net.sareweb.lifedroid.sqlite;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -44,7 +45,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	}
 	
 	private String getFieldsString(){
-		Class<?> c = Class.forName(T.getClass().getName());
+	     //getClass().getTypeParameters()[0].getClass().getFields();
 		String fields ="";
 		for (int i =0 ; i< T.fields.length; i++){
 			if(i==0) fields = T.fields[i];
