@@ -1,13 +1,12 @@
 package net.sareweb.lifedroid.model;
 
-import net.sareweb.lifedroid.annotation.Field;
+import net.sareweb.lifedroid.annotation.LDField;
 
 public abstract class LDObject {
-	
+
 	public static String tableName;
-	public static String[] fields;
-	
-	@Field(id="true", type="Long" )
+
+	@LDField(id = true, sqliteType = LDField.SQLITE_TYPE_INTEGER)
 	public String id;
-	
+
 }
