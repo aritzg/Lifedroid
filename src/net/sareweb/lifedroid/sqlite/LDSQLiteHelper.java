@@ -2,7 +2,11 @@ package net.sareweb.lifedroid.sqlite;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+
+import com.sun.xml.internal.ws.util.StringUtils;
 
 import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
@@ -38,22 +42,37 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	
 	public abstract T persist(T t);
 	
-	public T getById(String Id){
-		String[] ident = new String[] {"usu1"};
+	public T getById(String id){
+		String[] ident = new String[] {id};
 		Cursor cur = getReadableDatabase().query(getTableName(), getFieldNames(), "_id=?", ident, null, null, null);
 		if(cur==null || cur.getCount()==0) return null;
 		cur.moveToFirst();
 		Class c = getTypeArgument();
 		try {
 			Object entityInstance = c.newInstance();
-			//TODO
-			return null;
+			Field[] fields = c.getFields();
+			for (int i = 0; i < fields.length; i++) {
+				Field f = fields[i];
+				Annotation[] annotations = f.getAnnotations();
+				if(annotations!=null){
+					for (int j = 0; j < annotations.length; j++) {
+						Annotation a = annotations[j];
+						if(a instanceof LDField){
+							setFieldValueFromCursor(entityInstance, f, cur);
+							break;
+						}
+					}
+				}
+			}
+			return (T)entityInstance;
 		} catch (Exception e) {
 			Log.e(TAG,"Error instantiating class", e);
 			return null;
 		}
 	}
 	
+	
+
 	public int delete(T t){
 		return delete(t.id);
 	}
@@ -143,6 +162,33 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		}
 		return sQLFieldDefinition;
 	}
+	
+	private void setFieldValueFromCursor(Object entityInstance, Field field,
+			Cursor cur) {
+		Method m;
+		try {
+			m = entityInstance.getClass().getMethod("set" + field.getName(), field.getType());
+			try {
+				if(field.getType().getClass().equals(String.class)){
+					m.invoke(entityInstance, cur.getString(cur.getColumnIndex(field.getName())));
+				}
+				else if(field.getType().getClass().equals(Long.class)){
+					m.invoke(entityInstance, cur.getLong(cur.getColumnIndex(field.getName())));
+				}
+				else if(field.getType().getClass().equals(Double.class)){
+					m.invoke(entityInstance, cur.getDouble(cur.getColumnIndex(field.getName())));
+				}
+			} catch (Exception e) {
+				Log.e(TAG, "No method found or security exception", e);
+			}
+		} catch (Exception e) {
+			Log.e(TAG, "No method found or security exception", e);
+		}
+		
+		
+		
+	}
+	
 
 	private String _sqlCreate = "";
 	protected String TAG = this.getClass().getName();
