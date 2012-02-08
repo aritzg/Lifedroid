@@ -8,6 +8,7 @@ import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.model.LDObject;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -35,13 +36,23 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		db.execSQL(_sqlCreate);
 	}
 	
-	private void composeCreateSQL() {
-		_sqlCreate = "CREATE TABLE " + getTableName() + " (" + getFieldsString() + ")";
-	}
-	
 	public abstract T persist(T t);
 	
-	public abstract T getById(String Id);
+	public T getById(String Id){
+		String[] ident = new String[] {"usu1"};
+		Cursor cur = getReadableDatabase().query(getTableName(), getFieldNames(), "_id=?", ident, null, null, null);
+		if(cur==null || cur.getCount()==0) return null;
+		cur.moveToFirst();
+		Class c = getTypeArgument();
+		try {
+			Object entityInstance = c.newInstance();
+			//TODO
+			return null;
+		} catch (Exception e) {
+			Log.e(TAG,"Error instantiating class", e);
+			return null;
+		}
+	}
 	
 	public int delete(T t){
 		return delete(t.id);
@@ -73,6 +84,10 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		return "";
 	}
 	
+	private void composeCreateSQL() {
+		_sqlCreate = "CREATE TABLE " + getTableName() + " (" + getFieldsString() + ")";
+	}
+	
 	private String getFieldsString(){
 		
 		Class c = getTypeArgument();
@@ -93,6 +108,15 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 			}
 		}
 		return fieldsString;
+	}
+	
+	private String[] getFieldNames(){
+		Class c = getTypeArgument();
+		String[] names= new String[c.getFields().length];
+		for (int i = 0; i < c.getFields().length; i++) {
+			names[i] = c.getFields()[i].getName();
+		}
+		return names;
 	}
 	
 	private Class<T> getTypeArgument(){
