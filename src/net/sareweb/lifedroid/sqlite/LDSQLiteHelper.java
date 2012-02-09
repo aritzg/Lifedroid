@@ -2,15 +2,16 @@ package net.sareweb.lifedroid.sqlite;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-
-import com.sun.xml.internal.ws.util.StringUtils;
 
 import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.model.LDObject;
+
+import org.apache.commons.lang3.StringUtils;
+
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -40,10 +41,20 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		db.execSQL(_sqlCreate);
 	}
 	
-	public abstract T persist(T t);
-	
-	public T getById(String id){
-		String[] ident = new String[] {id};
+	public T persist(T t){
+		if(t.getId()==null){
+			long id  = getWritableDatabase().insert(getTableName(), null, composeContentValues(t));
+			t.setId(id);
+		}
+		else{
+			String[] ident = new String[] {t.getId().toString()};
+			getWritableDatabase().update(getTableName(), composeContentValues(t), "_id=?", ident);
+		}
+		return t;
+	}
+
+	public T getById(Long id){
+		String[] ident = new String[] {id.toString()};
 		Cursor cur = getReadableDatabase().query(getTableName(), getFieldNames(), "_id=?", ident, null, null, null);
 		if(cur==null || cur.getCount()==0) return null;
 		cur.moveToFirst();
@@ -71,14 +82,12 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		}
 	}
 	
-	
-
 	public int delete(T t){
-		return delete(t.id);
+		return delete(t.getId());
 	}
 	
-	public int delete(String id){
-		String[] whereArgs = {id};
+	public int delete(Long id){
+		String[] whereArgs = {id.toString()};
 		return this.getWritableDatabase().delete(getTableName(), "_id=?", whereArgs);
 	}
 	
@@ -103,8 +112,40 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		return "";
 	}
 	
+	
 	private void composeCreateSQL() {
 		_sqlCreate = "CREATE TABLE " + getTableName() + " (" + getFieldsString() + ")";
+	}
+	
+	private ContentValues composeContentValues(T t) {
+		Class c = getTypeArgument();
+		Field[] fields = c.getFields();
+		ContentValues contentValues = new ContentValues();
+		for (int i = 0; i < fields.length; i++) {
+			Field f = fields[i];
+			Annotation[] annotations = f.getAnnotations();
+			if(annotations!=null){
+				for (int j = 0; j < annotations.length; j++) {
+					Annotation a = annotations[j];
+					if(a instanceof LDField){
+						Method m;
+						try {
+							m = c.getMethod("get" +  StringUtils.capitalize(f.getName()));
+						
+							if(((LDField) a).id()){
+								contentValues.put("_id", (String) m.invoke(t));
+							}
+							else{
+								contentValues.put(f.getName(), (String) m.invoke(t));
+							}
+						} catch (Exception e) {
+							Log.e(TAG, "Error invoking get", e);
+						}
+					}
+				}
+			}
+		}
+		return contentValues;
 	}
 	
 	private String getFieldsString(){
@@ -167,7 +208,8 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 			Cursor cur) {
 		Method m;
 		try {
-			m = entityInstance.getClass().getMethod("set" + field.getName(), field.getType());
+			
+			m = entityInstance.getClass().getMethod("set" +  StringUtils.capitalize(field.getName()), field.getType());
 			try {
 				if(field.getType().getClass().equals(String.class)){
 					m.invoke(entityInstance, cur.getString(cur.getColumnIndex(field.getName())));
@@ -184,9 +226,6 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		} catch (Exception e) {
 			Log.e(TAG, "No method found or security exception", e);
 		}
-		
-		
-		
 	}
 	
 
