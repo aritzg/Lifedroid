@@ -4,8 +4,6 @@ import net.sareweb.lifedroid.annotation.LDField;
 
 public abstract class LDObject {
 
-	public static String tableName;
-
 	@LDField(id = true, sqliteType = LDField.SQLITE_TYPE_INTEGER)
 	private Long id;
 

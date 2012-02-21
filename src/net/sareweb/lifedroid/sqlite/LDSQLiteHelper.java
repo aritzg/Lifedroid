@@ -9,6 +9,7 @@ import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.model.LDObject;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import android.content.ContentValues;
@@ -35,6 +36,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	}
 	
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		db.execSQL("DROP TABLE IF EXISTS " + getTableName());
 		Log.d(TAG, "Upgrading DB"); 
 		composeCreateSQL();
 		Log.d(TAG, "\tCreate sentence: " + _sqlCreate);
@@ -56,7 +58,10 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	public T getById(Long id){
 		String[] ident = new String[] {id.toString()};
 		Cursor cur = getReadableDatabase().query(getTableName(), getFieldNames(), "_id=?", ident, null, null, null);
-		if(cur==null || cur.getCount()==0) return null;
+		if(cur==null || cur.getCount()==0){
+			Log.d(TAG,"Object not found");
+			return null;
+		}
 		cur.moveToFirst();
 		Class c = getTypeArgument();
 		try {
@@ -75,6 +80,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 					}
 				}
 			}
+			Log.d(TAG,"Object populated");
 			return (T)entityInstance;
 		} catch (Exception e) {
 			Log.e(TAG,"Error instantiating class", e);
@@ -119,10 +125,15 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	
 	private ContentValues composeContentValues(T t) {
 		Class c = getTypeArgument();
-		Field[] fields = c.getFields();
+		Class superClass = c.getSuperclass();
+		
+		Field[] fields = c.getDeclaredFields();
+		Field[] superFields = superClass.getDeclaredFields();
+		Field[] allFields = ArrayUtils.addAll(fields, superFields);
+		
 		ContentValues contentValues = new ContentValues();
-		for (int i = 0; i < fields.length; i++) {
-			Field f = fields[i];
+		for (int i = 0; i < allFields.length; i++) {
+			Field f = allFields[i];
 			Annotation[] annotations = f.getAnnotations();
 			if(annotations!=null){
 				for (int j = 0; j < annotations.length; j++) {
@@ -136,27 +147,33 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 								contentValues.put("_id", (String) m.invoke(t));
 							}
 							else{
-								contentValues.put(f.getName(), (String) m.invoke(t));
+								if(m.invoke(t)!=null)contentValues.put(f.getName(), m.invoke(t).toString());
+								else contentValues.put(f.getName(), "");
 							}
 						} catch (Exception e) {
-							Log.e(TAG, "Error invoking get", e);
+							Log.e(TAG, "Error invoking get for field " + StringUtils.capitalize(f.getName()), e);
 						}
 					}
 				}
 			}
 		}
+		
 		return contentValues;
 	}
 	
 	private String getFieldsString(){
 		
 		Class c = getTypeArgument();
+		Class superClass = c.getSuperclass();
 		
-		Field[] fields =c.getFields();
+		Field[] fields = c.getDeclaredFields();
+		Field[] superFields = superClass.getDeclaredFields();
+		Field[] allFields = ArrayUtils.addAll(fields, superFields);
+		
 		String fieldsString ="";
 		boolean firstField = true;
-		for (int i =0 ; i< fields.length; i++){
-			String sQLFieldDefinition = composeSQLFieldDefinition(fields[i]);
+		for (int i =0 ; i< allFields.length; i++){
+			String sQLFieldDefinition = composeSQLFieldDefinition(allFields[i]);
 			if(sQLFieldDefinition!=null && !sQLFieldDefinition.equals("")){
 				if(firstField){
 					fieldsString = fieldsString + sQLFieldDefinition;
@@ -167,6 +184,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 				}
 			}
 		}
+		
 		return fieldsString;
 	}
 	
