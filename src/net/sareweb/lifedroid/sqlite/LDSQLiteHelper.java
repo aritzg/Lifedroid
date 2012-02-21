@@ -2,11 +2,13 @@ package net.sareweb.lifedroid.sqlite;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 
 import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
+import net.sareweb.lifedroid.exception.IntrospectionException;
 import net.sareweb.lifedroid.model.LDObject;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -43,21 +45,22 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		db.execSQL(_sqlCreate);
 	}
 	
-	public T persist(T t){
+	public T persist(T t) throws IntrospectionException{
 		if(t.getId()==null){
-			long id  = getWritableDatabase().insert(getTableName(), null, composeContentValues(t));
+			long id  = getWritableDatabase().insert(getTableName(), null, composeContentValues(t, false));
 			t.setId(id);
 		}
 		else{
-			String[] ident = new String[] {t.getId().toString()};
-			getWritableDatabase().update(getTableName(), composeContentValues(t), "_id=?", ident);
+			Log.d(TAG, "getIdFiledName() " + getIdFieldName());
+			String[] ident = new String[] {getIdFieldName()};
+			getWritableDatabase().update(getTableName(), composeContentValues(t, true), getIdFieldName()+"=?", ident);
 		}
 		return t;
 	}
 
 	public T getById(Long id){
 		String[] ident = new String[] {id.toString()};
-		Cursor cur = getReadableDatabase().query(getTableName(), getFieldNames(), "_id=?", ident, null, null, null);
+		Cursor cur = getReadableDatabase().query(getTableName(), getFieldNames(), getIdFieldName()+"=?", ident, null, null, null);
 		if(cur==null || cur.getCount()==0){
 			Log.d(TAG,"Object not found");
 			return null;
@@ -88,13 +91,28 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		}
 	}
 	
-	public int delete(T t){
-		return delete(t.getId());
-	}
-	
 	public int delete(Long id){
 		String[] whereArgs = {id.toString()};
-		return this.getWritableDatabase().delete(getTableName(), "_id=?", whereArgs);
+		return this.getWritableDatabase().delete(getTableName(), getIdFieldName()+"=?", whereArgs);
+	}
+	
+	private String getIdFieldName(){
+		Class c = getTypeArgument();
+		for (int i = 0; i < c.getDeclaredFields().length; i++) {
+			Field f = c.getDeclaredFields()[i];
+			Annotation[] annotations = f.getAnnotations();
+			if(annotations!=null){
+				for (int j = 0; j < annotations.length; j++) {
+					Annotation a = annotations[j];
+					if(a instanceof LDField){
+						if(((LDField) a).id()){
+							return f.getName();
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 	
 	private String getTableName(){
@@ -123,7 +141,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		_sqlCreate = "CREATE TABLE " + getTableName() + " (" + getFieldsString() + ")";
 	}
 	
-	private ContentValues composeContentValues(T t) {
+	private ContentValues composeContentValues(T t, boolean getIdToo) {
 		Class c = getTypeArgument();
 		Class superClass = c.getSuperclass();
 		
@@ -139,25 +157,22 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 				for (int j = 0; j < annotations.length; j++) {
 					Annotation a = annotations[j];
 					if(a instanceof LDField){
-						Method m;
-						try {
-							m = c.getMethod("get" +  StringUtils.capitalize(f.getName()));
 						
-							if(((LDField) a).id()){
-								contentValues.put("_id", (String) m.invoke(t));
-							}
-							else{
+						if(getIdToo==true || !((LDField) a).id()){
+							Method m;
+							try {
+								m = c.getMethod("get" +  StringUtils.capitalize(f.getName()));
 								if(m.invoke(t)!=null)contentValues.put(f.getName(), m.invoke(t).toString());
 								else contentValues.put(f.getName(), "");
+							} 
+							catch (Exception e) {
+								Log.e(TAG, "Error invoking get for field " + StringUtils.capitalize(f.getName()), e);
 							}
-						} catch (Exception e) {
-							Log.e(TAG, "Error invoking get for field " + StringUtils.capitalize(f.getName()), e);
 						}
 					}
 				}
 			}
 		}
-		
 		return contentValues;
 	}
 	
@@ -211,7 +226,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 				if(a instanceof LDField){
 					LDField ldFiledAnnotation = (LDField)a;
 					if(ldFiledAnnotation.id()){
-						sQLFieldDefinition = "_id " + ldFiledAnnotation.sqliteType() + "  primary key autoincrement";
+						sQLFieldDefinition = f.getName() + " " + ldFiledAnnotation.sqliteType() + "  primary key autoincrement";
 					}
 					else {
 						sQLFieldDefinition = f.getName() + " " + ldFiledAnnotation.sqliteType();
