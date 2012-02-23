@@ -1,11 +1,12 @@
 package net.sareweb.lifedroid.liferay;
 
+import net.sareweb.lifedroid.util.LDConstants;
 import net.sareweb.lifedroid.util.rest.RESTClient;
 
 public abstract class GenericLiferayConsumer {
 
-	public GenericLiferayConsumer(String server, int port, String serviceBaseURL) {
-		_rClient = new RESTClient(server, port, serviceBaseURL);
+	public GenericLiferayConsumer() {
+		_rClient = new RESTClient(LDConstants.LIFERAY_SERVER_URL, LDConstants.LIFERAY_SERVER_PORT, LDConstants.LIFERAY_SERVER_SERVICE_PATH);
 	}
 
 	public void setCredentials(String user, String pass) {

@@ -21,13 +21,13 @@ import android.util.Log;
 
 public class RESTClient {
 
-	public RESTClient(String server, int port, String serviceBaseURL) {
+	public RESTClient(String server, String port, String servicePath) {
 		_server = server;
 		_port = port;
-		_serviceBaseURL = serviceBaseURL;
+		_servicePath = servicePath;
 		_httpClient = new DefaultHttpClient();
 
-		_targetHost = new HttpHost(_server, _port);
+		_targetHost = new HttpHost(_server, Integer.parseInt(_port));
 
 	}
 
@@ -47,7 +47,7 @@ public class RESTClient {
 		BasicScheme basicAuth = new BasicScheme();
 		localContext.setAttribute("preemptive-auth", basicAuth);
 		String fullUrl = "http://" + _user + ":" + _pass + "@" + _server + ":"
-				+ _port + _serviceBaseURL;
+				+ _port + _servicePath;
 
 		if (serviceClassName != null && !serviceClassName.equals("")) {
 			fullUrl += "?serviceClassName=" + serviceClassName;
@@ -89,7 +89,7 @@ public class RESTClient {
 		BasicScheme basicAuth = new BasicScheme();
 		localContext.setAttribute("preemptive-auth", basicAuth);
 		String fullUrl = "http://" + _user + ":" + _pass + "@" + _server + ":"
-				+ _port + _serviceBaseURL;
+				+ _port + _servicePath;
 
 		if (serviceClassName != null && !serviceClassName.equals("")) {
 			fullUrl += "?serviceClassName=" + serviceClassName;
@@ -144,8 +144,8 @@ public class RESTClient {
 	}
 
 	private String _server;
-	private int _port;
-	private String _serviceBaseURL;
+	private String _port;
+	private String _servicePath;
 	private DefaultHttpClient _httpClient;
 	private HttpHost _targetHost;
 

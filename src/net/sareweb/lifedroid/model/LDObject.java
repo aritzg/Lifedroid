@@ -15,50 +15,42 @@ import android.util.Log;
 
 public abstract class LDObject<T> {
 
-	/*@LDField(id = true, sqliteType = LDField.SQLITE_TYPE_INTEGER)
-	private Long id;
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}*/
-	
-	public Long getId() throws IntrospectionException{
+	public Long getId() throws IntrospectionException {
 		try {
-			Method m = this.getClass().getMethod("get" + StringUtils.capitalize(getIdFieldName()));
+			Method m = this.getClass().getMethod(
+					"get" + StringUtils.capitalize(getIdFieldName()));
 			return (Long) m.invoke(this);
 		} catch (Exception e) {
-			Log.e(this.getClass().getName(), "Error getting value for ID field", e);
+			Log.e(this.getClass().getName(),
+					"Error getting value for ID field", e);
 			throw new IntrospectionException();
 		}
-		
+
 	}
-	
-	public void setId(Long id) throws IntrospectionException{
+
+	public void setId(Long id) throws IntrospectionException {
 		try {
-			Method m = this.getClass().getMethod("set" + StringUtils.capitalize(getIdFieldName()), Long.class);
+			Method m = this.getClass().getMethod(
+					"set" + StringUtils.capitalize(getIdFieldName()),
+					Long.class);
 			m.invoke(this, id);
 		} catch (Exception e) {
 			throw new IntrospectionException();
 		}
-		
 	}
 
-	private String getIdFieldName(){
-		
+	private String getIdFieldName() {
+
 		Class c = this.getClass();
-		
+
 		for (int i = 0; i < c.getDeclaredFields().length; i++) {
 			Field f = c.getDeclaredFields()[i];
 			Annotation[] annotations = f.getAnnotations();
-			if(annotations!=null){
+			if (annotations != null) {
 				for (int j = 0; j < annotations.length; j++) {
 					Annotation a = annotations[j];
-					if(a instanceof LDField){
-						if(((LDField) a).id()){
+					if (a instanceof LDField) {
+						if (((LDField) a).id()) {
 							return f.getName();
 						}
 					}
@@ -67,5 +59,5 @@ public abstract class LDObject<T> {
 		}
 		return null;
 	}
-	
+
 }

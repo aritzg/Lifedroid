@@ -6,9 +6,9 @@ import android.util.Log;
 
 public class UserLiferayConsumer extends GenericLiferayConsumer {
 
-	public UserLiferayConsumer(String server, int port, String serviceBaseURL) {
-		super(server, port, serviceBaseURL);
-		_serviceClassName = "com.liferay.portal.service.UserServiceUtil";
+	public UserLiferayConsumer(String server, int port, String servicePath) {
+		super();
+		_serviceClassName = "user";
 	}
 
 	public boolean validateUserCredentials() {
