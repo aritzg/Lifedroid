@@ -6,7 +6,7 @@ import android.util.Log;
 
 public class UserLiferayConsumer extends GenericLiferayConsumer {
 
-	public UserLiferayConsumer(String server, int port, String servicePath) {
+	public UserLiferayConsumer() {
 		super();
 		_serviceClassName = "user";
 	}

@@ -5,14 +5,22 @@ import net.sareweb.lifedroid.model.UserModel;
 
 public class UserManager extends GenericManager {
 
-	public UserModel validateUser(String userName, String password){
-		return null;
-	}
-	
 	@Override
 	public void synchronize() {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public UserModel validateUser(String userName, String password){
+		return null;
+	}
+	
+	public UserModel getUserByIdFromServer(String userId){
+		return null;
+	}
+	
+	public UserModel getUserByEmailAddressFromServer(String emailAddress){
+		return null;
 	}
 
 }

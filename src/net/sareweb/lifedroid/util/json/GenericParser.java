@@ -6,13 +6,13 @@ import java.lang.reflect.Method;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.sun.xml.internal.ws.util.StringUtils;
+
 import android.util.Log;
 
-public class GenericParser {
-
-	public GenericParser(Class clazz) {
-		_clazz = clazz;
-	}
+public class GenericParser<T> {
+	
+	private T t;
 
 	public Object parse(String jsonString) {
 		try {
@@ -25,7 +25,7 @@ public class GenericParser {
 
 	public Object parse(JSONObject jsonObj) {
 
-		Field[] fields = _clazz.getDeclaredFields();
+		Field[] fields = t.getClass().getDeclaredFields();
 		if (fields == null) {
 			Log.d(TAG, "Was that an empty class?");
 			return null;
@@ -33,7 +33,7 @@ public class GenericParser {
 		Object parsed = null;
 		try {
 			// Create a new instance of the provided class
-			parsed = _clazz.newInstance();
+			parsed = t.getClass().newInstance();
 		} catch (InstantiationException e1) {
 			Log.e(TAG, "Could not instantiate class!", e1);
 			return null;
@@ -46,7 +46,7 @@ public class GenericParser {
 			try {
 				// Obtain setter method for each field
 				Method m = parsed.getClass().getMethod(
-						"set" + capitalizeString(f.getName()), f.getType());
+						"set" + StringUtils.capitalize(f.getName()), f.getType());
 				// and ivoke it passing as parameter the corresponding
 				// JSONObject's field
 				m.invoke(parsed, jsonObj.get(f.getName()));
@@ -60,14 +60,6 @@ public class GenericParser {
 		return parsed;
 	}
 
-	private String capitalizeString(String string1) {
-		// This method return the string with its first cahr passed to UPPER
-		// CASE
-		if (string1 == null || string1.length() < 1)
-			return string1;
-		return string1.substring(0, 1).toUpperCase() + string1.substring(1);
-	}
 
-	private final Class _clazz;
 	private static final String TAG = "GenericParser";
 }
