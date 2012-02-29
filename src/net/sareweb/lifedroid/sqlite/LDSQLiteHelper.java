@@ -5,6 +5,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
@@ -28,6 +30,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	
 	public LDSQLiteHelper(Context context, String name, CursorFactory factory,int version) {
 		super(context, name, factory, version);
+		getWritableDatabase().close();
 	}
 
 	public void onCreate(SQLiteDatabase db) {
@@ -66,37 +69,26 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 			return null;
 		}
 		cur.moveToFirst();
-		Class c = getTypeArgument();
-		try {
-			Object entityInstance = c.newInstance();
-			Field[] fields = c.getFields();
-			for (int i = 0; i < fields.length; i++) {
-				Field f = fields[i];
-				Annotation[] annotations = f.getAnnotations();
-				if(annotations!=null){
-					for (int j = 0; j < annotations.length; j++) {
-						Annotation a = annotations[j];
-						if(a instanceof LDField){
-							setFieldValueFromCursor(entityInstance, f, cur);
-							break;
-						}
-					}
-				}
-			}
-			Log.d(TAG,"Object populated");
-			return (T)entityInstance;
-		} catch (Exception e) {
-			Log.e(TAG,"Error instantiating class", e);
-			return null;
-		}
+		return getObjectFromCursor(cur);
 	}
+	
+	public List<T> query(String selection, String[] selectionArgs){
+		Cursor c = getWritableDatabase().query(getTableName(), getFieldNames(), selection, selectionArgs, null, null, null);
+		if(c==null)return null;
+		ArrayList<T> results = new ArrayList<T>(c.getCount()); 
+		while(c.moveToFirst()){
+			results.add(getObjectFromCursor(c));
+		}
+		return results;
+	}
+	
 	
 	public int delete(Long id){
 		String[] whereArgs = {id.toString()};
 		return this.getWritableDatabase().delete(getTableName(), getIdFieldName()+"=?", whereArgs);
 	}
 	
-	private String getIdFieldName(){
+	protected String getIdFieldName(){
 		Class c = getTypeArgument();
 		for (int i = 0; i < c.getDeclaredFields().length; i++) {
 			Field f = c.getDeclaredFields()[i];
@@ -115,7 +107,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		return null;
 	}
 	
-	private String getTableName(){
+	protected String getTableName(){
 		Class c = getTypeArgument();
 		String tName = getAnnotatedTableName();
 		if(!"".equals(tName))return tName;
@@ -203,7 +195,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		return fieldsString;
 	}
 	
-	private String[] getFieldNames(){
+	protected String[] getFieldNames(){
 		Class c = getTypeArgument();
 		String[] names= new String[c.getFields().length];
 		for (int i = 0; i < c.getFields().length; i++) {
@@ -237,20 +229,46 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		return sQLFieldDefinition;
 	}
 	
+	protected T getObjectFromCursor(Cursor cur){
+		Class c = getTypeArgument();
+		try {
+			Object entityInstance = c.newInstance();
+			Field[] fields = c.getDeclaredFields();
+			
+			for (int i = 0; i < fields.length; i++) {
+				Field f = fields[i];
+				Annotation[] annotations = f.getAnnotations();
+				if(annotations!=null){
+					for (int j = 0; j < annotations.length; j++) {
+						Annotation a = annotations[j];
+						if(a instanceof LDField){
+							setFieldValueFromCursor(entityInstance, f, cur, ((LDField)a).sqliteType());
+							break;
+						}
+					}
+				}
+			}
+			Log.d(TAG,"Object populated");
+			return (T)entityInstance;
+		} catch (Exception e) {
+			Log.e(TAG,"Error instantiating class", e);
+			return null;
+		}
+	}
+	
 	private void setFieldValueFromCursor(Object entityInstance, Field field,
-			Cursor cur) {
+			Cursor cur, String sqliteType) {
 		Method m;
 		try {
-			
 			m = entityInstance.getClass().getMethod("set" +  StringUtils.capitalize(field.getName()), field.getType());
 			try {
-				if(field.getType().getClass().equals(String.class)){
+				if(sqliteType.equals(LDField.SQLITE_TYPE_TEXT)){
 					m.invoke(entityInstance, cur.getString(cur.getColumnIndex(field.getName())));
 				}
-				else if(field.getType().getClass().equals(Long.class)){
+				else if(sqliteType.equals(LDField.SQLITE_TYPE_INTEGER)){
 					m.invoke(entityInstance, cur.getLong(cur.getColumnIndex(field.getName())));
 				}
-				else if(field.getType().getClass().equals(Double.class)){
+				else if(sqliteType.equals(LDField.SQLITE_TYPE_REAL)){
 					m.invoke(entityInstance, cur.getDouble(cur.getColumnIndex(field.getName())));
 				}
 			} catch (Exception e) {

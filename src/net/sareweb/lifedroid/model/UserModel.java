@@ -1,16 +1,67 @@
 package net.sareweb.lifedroid.model;
 
-public class UserModel {
+import net.sareweb.lifedroid.annotation.LDField;
 
-	private long userId;
+public class UserModel extends LDObject{
+	
+	@LDField(id=true, sqliteType=LDField.SQLITE_TYPE_INTEGER)
+	private Long userId;
+	
+	@LDField
 	private String screenName;
+	
+	@LDField
+	private String password;
+	
+	@LDField
 	private String emailAddress;
+	
+	@LDField
 	private String firstName;
+	
+	@LDField
 	private String middleName;
+	
+	@LDField
 	private String lastName;
+	
+	@LDField
 	private String languageId;
-	private long contactId;
-	private boolean active;
+	
+	@LDField(sqliteType=LDField.SQLITE_TYPE_INTEGER)
+	private Long contactId;
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getScreenName() {
+		return screenName;
+	}
+
+	public void setScreenName(String screenName) {
+		this.screenName = screenName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getEmailAddress() {
+		return emailAddress;
+	}
+
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
+	}
 
 	public String getFirstName() {
 		return firstName;
@@ -44,44 +95,12 @@ public class UserModel {
 		this.languageId = languageId;
 	}
 
-	public long getContactId() {
+	public Long getContactId() {
 		return contactId;
 	}
 
-	public void setContactId(long contactId) {
+	public void setContactId(Long contactId) {
 		this.contactId = contactId;
 	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
-	public long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(long userId) {
-		this.userId = userId;
-	}
-
-	public String getScreenName() {
-		return screenName;
-	}
-
-	public void setScreenName(String screenName) {
-		this.screenName = screenName;
-	}
-
-	public String getEmailAddress() {
-		return emailAddress;
-	}
-
-	public void setEmailAddress(String emailAddress) {
-		this.emailAddress = emailAddress;
-	}
-
+	
 }
