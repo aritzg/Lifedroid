@@ -76,8 +76,10 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		Cursor c = getWritableDatabase().query(getTableName(), getFieldNames(), selection, selectionArgs, null, null, null);
 		if(c==null)return null;
 		ArrayList<T> results = new ArrayList<T>(c.getCount()); 
-		while(c.moveToFirst()){
+		
+		while(c.moveToNext()){
 			results.add(getObjectFromCursor(c));
+			
 		}
 		return results;
 	}
