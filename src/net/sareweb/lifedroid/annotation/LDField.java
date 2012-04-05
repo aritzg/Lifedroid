@@ -14,5 +14,5 @@ public @interface LDField {
 	public final String SQLITE_TYPE_TEXT = "TEXT";
 	public final String SQLITE_TYPE_INTEGER = "INTEGER";
 	public final String SQLITE_TYPE_REAL = "REAL";
-	public final String SQLITE_TYPE_DATE = "INTEGER";
+	public final String SQLITE_TYPE_DATE = "DATE";
 }

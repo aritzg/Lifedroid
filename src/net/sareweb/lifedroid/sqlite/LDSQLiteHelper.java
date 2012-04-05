@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import net.sareweb.lifedroid.annotation.LDEntity;
@@ -49,15 +50,16 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	}
 	
 	public T persist(T t) throws IntrospectionException{
+		Log.d(TAG, "persisting " + t.getId());
 		if(t.getId()==null){
 			long id  = getWritableDatabase().insert(getTableName(), null, composeContentValues(t, false));
 			t.setId(id);
 		}
 		else{
-			Log.d(TAG, "getIdFiledName() " + getIdFieldName());
-			String[] ident = new String[] {getIdFieldName()};
+			String[] ident = new String[] {String.valueOf(t.getId())};
 			getWritableDatabase().update(getTableName(), composeContentValues(t, true), getIdFieldName()+"=?", ident);
 		}
+		close();
 		return t;
 	}
 
@@ -73,7 +75,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	}
 	
 	public List<T> query(String selection, String[] selectionArgs){
-		Cursor c = getWritableDatabase().query(getTableName(), getFieldNames(), selection, selectionArgs, null, null, null);
+		Cursor c = getReadableDatabase().query(getTableName(), getFieldNames(), selection, selectionArgs, null, null, null);
 		if(c==null)return null;
 		ArrayList<T> results = new ArrayList<T>(c.getCount()); 
 		
@@ -81,6 +83,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 			results.add(getObjectFromCursor(c));
 			
 		}
+		close();
 		return results;
 	}
 	
@@ -219,11 +222,13 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 				Annotation a = annotations[i];
 				if(a instanceof LDField){
 					LDField ldFiledAnnotation = (LDField)a;
+					String type = ldFiledAnnotation.sqliteType();
+					if(type.equals(LDField.SQLITE_TYPE_DATE))type=LDField.SQLITE_TYPE_INTEGER;
 					if(ldFiledAnnotation.id()){
-						sQLFieldDefinition = f.getName() + " " + ldFiledAnnotation.sqliteType() + "  primary key autoincrement";
+						sQLFieldDefinition = f.getName() + " " + type + "  primary key autoincrement";
 					}
 					else {
-						sQLFieldDefinition = f.getName() + " " + ldFiledAnnotation.sqliteType();
+						sQLFieldDefinition = f.getName() + " " + type;
 					}
 				}
 			}
@@ -272,6 +277,9 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 				}
 				else if(sqliteType.equals(LDField.SQLITE_TYPE_REAL)){
 					m.invoke(entityInstance, cur.getDouble(cur.getColumnIndex(field.getName())));
+				}
+				else if(sqliteType.equals(LDField.SQLITE_TYPE_DATE)){
+					m.invoke(entityInstance, new Date(cur.getLong(cur.getColumnIndex(field.getName()))));
 				}
 			} catch (Exception e) {
 				Log.e(TAG, "No method found or security exception", e);
