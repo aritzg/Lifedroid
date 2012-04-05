@@ -9,7 +9,7 @@ import java.lang.reflect.ParameterizedType;
 import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.exception.IntrospectionException;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import android.util.Log;
 

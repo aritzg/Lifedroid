@@ -14,8 +14,8 @@ import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.exception.IntrospectionException;
 import net.sareweb.lifedroid.model.LDObject;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -144,7 +144,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		
 		Field[] fields = c.getDeclaredFields();
 		Field[] superFields = superClass.getDeclaredFields();
-		Field[] allFields = ArrayUtils.addAll(fields, superFields);
+		Field[] allFields = (Field[]) ArrayUtils.addAll(fields, superFields);
 		
 		ContentValues contentValues = new ContentValues();
 		for (int i = 0; i < allFields.length; i++) {
@@ -180,7 +180,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		
 		Field[] fields = c.getDeclaredFields();
 		Field[] superFields = superClass.getDeclaredFields();
-		Field[] allFields = ArrayUtils.addAll(fields, superFields);
+		Field[] allFields = (Field[]) ArrayUtils.addAll(fields, superFields);
 		
 		String fieldsString ="";
 		boolean firstField = true;
