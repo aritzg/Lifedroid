@@ -1,6 +1,6 @@
 package net.sareweb.lifedroid.manager;
 
-import net.sareweb.lifedroid.model.UserModel;
+import net.sareweb.lifedroid.model.User;
 
 
 public class UserManager extends GenericManager {
@@ -11,15 +11,15 @@ public class UserManager extends GenericManager {
 		
 	}
 	
-	public UserModel validateUser(String userName, String password){
+	public User validateUser(String userName, String password){
 		return null;
 	}
 	
-	public UserModel getUserByIdFromServer(String userId){
+	public User getUserByIdFromServer(String userId){
 		return null;
 	}
 	
-	public UserModel getUserByEmailAddressFromServer(String emailAddress){
+	public User getUserByEmailAddressFromServer(String emailAddress){
 		return null;
 	}
 

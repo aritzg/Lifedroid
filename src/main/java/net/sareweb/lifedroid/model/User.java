@@ -2,7 +2,7 @@ package net.sareweb.lifedroid.model;
 
 import net.sareweb.lifedroid.annotation.LDField;
 
-public class UserModel extends LDObject{
+public class User extends LDObject{
 	
 	@LDField(id=true, sqliteType=LDField.SQLITE_TYPE_INTEGER)
 	private Long userId;

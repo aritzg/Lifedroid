@@ -1,4 +1,4 @@
-package net.sareweb.lifedroid.sqlite;
+package net.sareweb.lifedroid.sqlite.generic;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
