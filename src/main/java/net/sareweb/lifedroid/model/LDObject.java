@@ -14,6 +14,9 @@ import org.apache.commons.lang.StringUtils;
 import android.util.Log;
 
 public abstract class LDObject<T> {
+	
+	@LDField
+	private String objectStatus;
 
 	public Long getId() throws IntrospectionException {
 		try {
@@ -59,5 +62,15 @@ public abstract class LDObject<T> {
 		}
 		return null;
 	}
+
+	public String getObjectStatus() {
+		return objectStatus;
+	}
+
+	public void setObjectStatus(String objectStatus) {
+		this.objectStatus = objectStatus;
+	}
+	
+	
 
 }

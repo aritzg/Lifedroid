@@ -50,6 +50,25 @@
 			<name>Spring Maven MILESTONE Repository</name>
 			<url>http://repo.springframework.org/milestone</url>
 		</repository>
+		<repository>
+			<id>androidannotations-repository</id>
+			<name>androidannotations Maven2 repository</name>
+			<url>http://androidannotations.googlecode.com/svn/repository/snapshots</url>
+		</repository>
 	</repositories>
+	
+	<build>
+		<plugins>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

@@ -16,6 +16,7 @@ import net.sareweb.lifedroid.model.LDObject;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.omg.CORBA.OBJ_ADAPTER;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -52,9 +53,15 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	public T persist(T t) throws IntrospectionException{
 		Log.d(TAG, "persisting " + t.getId());
 		if(t.getId()==null){
+			t.setObjectStatus(OBJECT_STATUS_NEW);
 			long id  = getWritableDatabase().insert(getTableName(), null, composeContentValues(t, false));
 			t.setId(id);
 		}
+		else if(t.getObjectStatus().equals(OBJECT_STATUS_SYNCH)){
+			long id  = getWritableDatabase().insert(getTableName(), null, composeContentValues(t, true));
+			t.setId(id);
+		}
+		
 		else{
 			String[] ident = new String[] {String.valueOf(t.getId())};
 			getWritableDatabase().update(getTableName(), composeContentValues(t, true), getIdFieldName()+"=?", ident);
@@ -75,6 +82,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	}
 	
 	public List<T> query(String selection, String[] selectionArgs){
+		//selection= selection+ " and objectStatus <> '" + OBJECT_STATUS_DELETED+ "'";
 		Cursor c = getReadableDatabase().query(getTableName(), getFieldNames(), selection, selectionArgs, null, null, null);
 		if(c==null)return null;
 		ArrayList<T> results = new ArrayList<T>(c.getCount()); 
@@ -91,6 +99,22 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	public int delete(Long id){
 		String[] whereArgs = {id.toString()};
 		return this.getWritableDatabase().delete(getTableName(), getIdFieldName()+"=?", whereArgs);
+	}
+	
+	public void logicalDelete(Long id){
+		String[] whereArgs = {id.toString()};
+		ContentValues contentValues = new ContentValues();
+		if(isRemote(id))contentValues.put("objectStatus", OBJECT_STATUS_DELETED_REMOTE);
+		else contentValues.put("objectStatus", OBJECT_STATUS_DELETED_LOCAL);
+		getWritableDatabase().update(getTableName(), contentValues, getIdFieldName()+"=?", whereArgs);
+	}
+	
+	public boolean isRemote(Long id){
+		T t = getById(id);
+		if(t.getObjectStatus()!=null && (t.getObjectStatus().equals(OBJECT_STATUS_DELETED_REMOTE) || t.getObjectStatus().equals(OBJECT_STATUS_SYNCH) )){
+			return true;
+		}
+		return false;
 	}
 	
 	protected String getIdFieldName(){
@@ -149,6 +173,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		ContentValues contentValues = new ContentValues();
 		for (int i = 0; i < allFields.length; i++) {
 			Field f = allFields[i];
+			Log.d(TAG, f.getName());
 			Annotation[] annotations = f.getAnnotations();
 			if(annotations!=null){
 				for (int j = 0; j < annotations.length; j++) {
@@ -159,9 +184,16 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 							Method m;
 							try {
 								m = c.getMethod("get" +  StringUtils.capitalize(f.getName()));
-								if(m.invoke(t)!=null)contentValues.put(f.getName(), m.invoke(t).toString());
+								
+								String value=m.invoke(t).toString();
+								
+								Log.d(TAG,"\t" + value);
+								if(m.invoke(t)!=null)contentValues.put(f.getName(), value);
 								else contentValues.put(f.getName(), "");
-							} 
+							}
+							catch (NullPointerException e) {
+								Log.e(TAG, "Null value for field " + StringUtils.capitalize(f.getName()));
+							}
 							catch (Exception e) {
 								Log.e(TAG, "Error invoking get for field " + StringUtils.capitalize(f.getName()), e);
 							}
@@ -238,12 +270,17 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 	
 	protected T getObjectFromCursor(Cursor cur){
 		Class c = getTypeArgument();
+		Class superClass = c.getSuperclass();
+		
 		try {
 			Object entityInstance = c.newInstance();
 			Field[] fields = c.getDeclaredFields();
+			Field[] superFields = superClass.getDeclaredFields();
+			Field[] allFields = (Field[]) ArrayUtils.addAll(fields, superFields);
 			
-			for (int i = 0; i < fields.length; i++) {
-				Field f = fields[i];
+			for (int i = 0; i < allFields.length; i++) {
+				Field f = allFields[i];
+				Log.d(TAG, "Getting value for field " + f.getName());
 				Annotation[] annotations = f.getAnnotations();
 				if(annotations!=null){
 					for (int j = 0; j < annotations.length; j++) {
@@ -279,18 +316,24 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 					m.invoke(entityInstance, cur.getDouble(cur.getColumnIndex(field.getName())));
 				}
 				else if(sqliteType.equals(LDField.SQLITE_TYPE_DATE)){
-					m.invoke(entityInstance, new Date(cur.getLong(cur.getColumnIndex(field.getName()))));
+					m.invoke(entityInstance, cur.getLong(cur.getColumnIndex(field.getName())));
 				}
 			} catch (Exception e) {
-				Log.e(TAG, "No method found or security exception", e);
+				Log.e(TAG, "Invocation exception (" + field.getName() + ")", e);
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "No method found or security exception", e);
+			Log.e(TAG, "No method found or security exception (" + field.getName() + ")", e);
 		}
 	}
 	
 
 	private String _sqlCreate = "";
 	protected String TAG = this.getClass().getName();
+	
+	public static final String OBJECT_STATUS_NEW ="NEW";
+	public static final String OBJECT_STATUS_DIRTY ="DIRTY";
+	public static final String OBJECT_STATUS_SYNCH ="SYNCH";
+	public static final String OBJECT_STATUS_DELETED_LOCAL ="DELETED_LOCAL";
+	public static final String OBJECT_STATUS_DELETED_REMOTE ="DELETED_REMOTE";
 
 }

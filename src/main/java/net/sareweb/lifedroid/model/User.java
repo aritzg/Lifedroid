@@ -11,9 +11,6 @@ public class User extends LDObject{
 	private String screenName;
 	
 	@LDField
-	private String password;
-	
-	@LDField
 	private String emailAddress;
 	
 	@LDField
@@ -45,14 +42,6 @@ public class User extends LDObject{
 
 	public void setScreenName(String screenName) {
 		this.screenName = screenName;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	public String getEmailAddress() {

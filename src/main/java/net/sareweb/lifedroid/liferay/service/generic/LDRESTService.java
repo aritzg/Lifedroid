@@ -7,6 +7,11 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.ParameterizedType;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -19,6 +24,8 @@ import org.springframework.web.client.RestTemplate;
 import android.util.Log;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 
 import net.sareweb.lifedroid.model.LDObject;
 import net.sareweb.lifedroid.model.User;
@@ -26,27 +33,37 @@ import net.sareweb.lifedroid.util.LDConstants;
 
 public abstract class LDRESTService<T extends LDObject> {
 
-	public LDRESTService() {
+	public LDRESTService(String emailAddress, String password){
+
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 
 		httpClient.getCredentialsProvider().setCredentials(
 				new AuthScope(LDConstants.LIFERAY_SERVER_URL,
 						Integer.parseInt(LDConstants.LIFERAY_SERVER_PORT)),
-				new UsernamePasswordCredentials(LDConstants.LIFERAY_USER, LDConstants.LIFERAY_PASSWORD));
+				new UsernamePasswordCredentials(emailAddress, password));
 
 		requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 		
+		setPorltetContext();
 		composeServiceURI();
 	}
 
 	private void composeServiceURI() {
-		_serviceURI = LDConstants.LIFERAY_SERVER_PROTOCOL +"://" + LDConstants.LIFERAY_SERVER_URL + ":" + LDConstants.LIFERAY_SERVER_PORT + LDConstants.LIFERAY_SERVER_SERVICE_PATH;
+		_serviceURI = LDConstants.LIFERAY_SERVER_PROTOCOL +
+				"://" + LDConstants.LIFERAY_SERVER_URL + 
+				":" + LDConstants.LIFERAY_SERVER_PORT;
+		if(!_portletContext.equals("")){
+			_serviceURI = _serviceURI + "/" + _portletContext;
+		}
+		_serviceURI = _serviceURI + LDConstants.LIFERAY_SERVER_SERVICE_PATH;
 		
 	}
 	
-	protected T runGET(String requestURL){
+	public abstract void setPorltetContext();
+	
+	protected T run(String requestURL, HttpMethod method){
 		try {
-        	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), HttpMethod.GET).execute();
+        	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();
         	Writer writer = new StringWriter();
         	char[] buffer = new char[1024];
         	Reader reader = new BufferedReader(
@@ -62,16 +79,62 @@ public abstract class LDRESTService<T extends LDObject> {
 			Log.d(TAG,"Error running get", e);
 			return null;
 		} 
-        
+	}
+	
+	protected List<T> getList(String requestURL, HttpMethod method){
+		try {
+        	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();
+        	Writer writer = new StringWriter();
+        	char[] buffer = new char[1024];
+        	Reader reader = new BufferedReader(
+        	new InputStreamReader(response.getBody(), "UTF-8"));
+        	int n;
+        	while ((n = reader.read(buffer)) != -1) {
+        		writer.write(buffer, 0, n);
+        	}
+        	Log.d(TAG,writer.toString());
+        	GsonBuilder gsonBuilder = new GsonBuilder(); 
+        	JsonParser parser = new JsonParser();
+        	
+        	JsonArray array = parser.parse(writer.toString()).getAsJsonArray();
+        	
+        	List<T> result = new ArrayList<T>();
+        	if(array!=null){
+        		for (int i = 0; i<array.size(); i++) {
+            		result.add(gsonBuilder.create().fromJson(array.get(i), getTypeArgument()));
+    			}
+        	}
+        	
+        	return result;
+        	
+		} catch (Exception e) {
+			Log.d(TAG,"Error running getList", e);
+			return null;
+		} 
 	}
 	
 	private Class<T> getTypeArgument(){
 		ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
 		return (Class)parameterizedType.getActualTypeArguments()[0];
 	}
+	
+	protected String addParamToRequestURL(String requestURL, String paramName, Object value){
+		String newRequestURL = requestURL;
+		if(value==null)  return requestURL + "/-" + paramName;
+		else{
+			if(value instanceof Date) {
+				newRequestURL = newRequestURL + "/" + paramName + "/" + ((Date)value).getTime();
+			}
+			else  {
+				newRequestURL = newRequestURL + "/" + paramName + "/" + value.toString();
+			} 
+		}
+		return newRequestURL;
+	}
 
 	protected HttpComponentsClientHttpRequestFactory requestFactory;
 	protected String _serviceURI;
+	protected String _portletContext="";
 	protected String TAG = "LDRESTService";
 
 }

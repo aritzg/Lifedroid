@@ -12,5 +12,5 @@ public class LDConstants {
 	
 	public static final String LIFERAY_COMPANY_ID = "10154";
 
-	//public static final String LIFERAY_REST_BASE_URL="http://test:test@www.sareweb.net:9080/api/secure/jsonws";
+	public static final String LIFERAY_REST_BASE_URL="http://www.sareweb.net:9080/api/secure/jsonws";
 }
