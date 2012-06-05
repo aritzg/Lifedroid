@@ -120,7 +120,7 @@ public abstract class LDRESTService<T extends LDObject> {
 	
 	protected String addParamToRequestURL(String requestURL, String paramName, Object value){
 		String newRequestURL = requestURL;
-		if(value==null)  return requestURL + "/-" + paramName;
+		if(value==null || value.toString().equals(""))  return requestURL + "/-" + paramName;
 		else{
 			if(value instanceof Date) {
 				newRequestURL = newRequestURL + "/" + paramName + "/" + ((Date)value).getTime();

@@ -58,7 +58,8 @@ public class UserRESTService extends LDRESTService<User> {
 		requestURL = addParamToRequestURL(requestURL, "userGroupIds", null);
 		requestURL = addParamToRequestURL(requestURL, "sendEmail", sendEmail);
 		requestURL = addParamToRequestURL(requestURL, "serviceContext", null);
-		return null;
+		Log.d(TAG, "Invoking POST " + requestURL);
+		return run(requestURL, HttpMethod.POST);
 	}
 	
 	@Override

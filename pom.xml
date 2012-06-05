@@ -56,7 +56,7 @@
 			<url>http://androidannotations.googlecode.com/svn/repository/snapshots</url>
 		</repository>
 	</repositories>
-	
+
 	<build>
 		<plugins>
 

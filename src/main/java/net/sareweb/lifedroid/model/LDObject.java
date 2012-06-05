@@ -8,6 +8,7 @@ import java.lang.reflect.ParameterizedType;
 
 import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.exception.IntrospectionException;
+import net.sareweb.lifedroid.sqlite.generic.LDSQLiteHelper;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -16,7 +17,7 @@ import android.util.Log;
 public abstract class LDObject<T> {
 	
 	@LDField
-	private String objectStatus;
+	private String objectStatus = LDSQLiteHelper.OBJECT_STATUS_NEW;
 
 	public Long getId() throws IntrospectionException {
 		try {
