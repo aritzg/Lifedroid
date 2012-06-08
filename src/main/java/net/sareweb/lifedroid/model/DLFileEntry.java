@@ -2,16 +2,19 @@ package net.sareweb.lifedroid.model;
 
 import net.sareweb.lifedroid.annotation.LDField;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+@JsonSerialize
 public class DLFileEntry extends LDObject{
 	
 	@LDField(id=true, sqliteType=LDField.SQLITE_TYPE_INTEGER)
-	private Long fileEntryId;
+	private Long fileEntryId = new Long(0);
 	
 	@LDField(sqliteType=LDField.SQLITE_TYPE_INTEGER)
-	private Long repositoryId;
+	private Long repositoryId = new Long(0);
 	
 	@LDField(sqliteType=LDField.SQLITE_TYPE_INTEGER)
-	private Long folderId;
+	private Long folderId = new Long(0);
 	
 	@LDField
 	private String sourceFileName;

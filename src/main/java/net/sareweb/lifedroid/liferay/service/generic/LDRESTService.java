@@ -73,8 +73,7 @@ public abstract class LDRESTService<T extends LDObject> {
         		writer.write(buffer, 0, n);
         	}
         	Log.d(TAG,writer.toString());
-        	GsonBuilder gsonBuilder = new GsonBuilder(); 
-        	return gsonBuilder.create().fromJson(writer.toString(), getTypeArgument());
+        	return getObjectFromJsonString(writer.toString());
 		} catch (Exception e) {
 			Log.d(TAG,"Error running get", e);
 			return null;
@@ -93,7 +92,6 @@ public abstract class LDRESTService<T extends LDObject> {
         		writer.write(buffer, 0, n);
         	}
         	Log.d(TAG,writer.toString());
-        	GsonBuilder gsonBuilder = new GsonBuilder(); 
         	JsonParser parser = new JsonParser();
         	
         	JsonArray array = parser.parse(writer.toString()).getAsJsonArray();
@@ -101,7 +99,7 @@ public abstract class LDRESTService<T extends LDObject> {
         	List<T> result = new ArrayList<T>();
         	if(array!=null){
         		for (int i = 0; i<array.size(); i++) {
-            		result.add(gsonBuilder.create().fromJson(array.get(i), getTypeArgument()));
+            		result.add(getObjectFromJsonString(array.get(i).toString()));
     			}
         	}
         	
@@ -132,6 +130,11 @@ public abstract class LDRESTService<T extends LDObject> {
 		return newRequestURL;
 	}
 
+	protected T getObjectFromJsonString(String jsonString){
+		GsonBuilder gsonBuilder = new GsonBuilder(); 
+		return gsonBuilder.create().fromJson(jsonString, getTypeArgument());
+	}
+	
 	protected HttpComponentsClientHttpRequestFactory requestFactory;
 	protected String _serviceURI;
 	protected String _portletContext="";

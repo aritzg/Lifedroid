@@ -101,6 +101,10 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 		return this.getWritableDatabase().delete(getTableName(), getIdFieldName()+"=?", whereArgs);
 	}
 	
+	public int deleteAll(){
+		return this.getWritableDatabase().delete(getTableName(), null, null);
+	}
+	
 	public void logicalDelete(Long id){
 		String[] whereArgs = {id.toString()};
 		ContentValues contentValues = new ContentValues();
@@ -280,7 +284,6 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 			
 			for (int i = 0; i < allFields.length; i++) {
 				Field f = allFields[i];
-				Log.d(TAG, "Getting value for field " + f.getName());
 				Annotation[] annotations = f.getAnnotations();
 				if(annotations!=null){
 					for (int j = 0; j < annotations.length; j++) {
