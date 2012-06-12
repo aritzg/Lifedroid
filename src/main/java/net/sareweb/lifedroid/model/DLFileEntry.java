@@ -2,9 +2,6 @@ package net.sareweb.lifedroid.model;
 
 import net.sareweb.lifedroid.annotation.LDField;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-@JsonSerialize
 public class DLFileEntry extends LDObject{
 	
 	@LDField(id=true, sqliteType=LDField.SQLITE_TYPE_INTEGER)

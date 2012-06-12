@@ -15,6 +15,7 @@ import net.sareweb.lifedroid.exception.IntrospectionException;
 import net.sareweb.lifedroid.model.LDObject;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.omg.CORBA.OBJ_ADAPTER;
 
@@ -179,7 +180,34 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 			Field f = allFields[i];
 			Log.d(TAG, f.getName());
 			Annotation[] annotations = f.getAnnotations();
-			if(annotations!=null){
+			
+			if(f.isAnnotationPresent(LDField.class)){
+				LDField ldFieldAnnotation = f.getAnnotation(LDField.class);
+				if(getIdToo==true || !ldFieldAnnotation.id()){
+					Method m;
+					try {
+						m = c.getMethod("get" +  StringUtils.capitalize(f.getName()));
+						
+						String value=m.invoke(t).toString();
+						if(LDField.SQLITE_TYPE_BOOLEAN.equals(ldFieldAnnotation.sqliteType())){
+							if("true".equals(value))value="1";
+							if("false".equals(value))value="0";
+						}
+						
+						Log.d(TAG,"\t" + value);
+						if(m.invoke(t)!=null)contentValues.put(f.getName(), value);
+						else contentValues.put(f.getName(), "");
+					}
+					catch (NullPointerException e) {
+						Log.e(TAG, "Null value for field " + StringUtils.capitalize(f.getName()));
+					}
+					catch (Exception e) {
+						Log.e(TAG, "Error invoking get for field " + StringUtils.capitalize(f.getName()), e);
+					}
+				}
+			}
+			
+			/*if(annotations!=null){
 				for (int j = 0; j < annotations.length; j++) {
 					Annotation a = annotations[j];
 					if(a instanceof LDField){
@@ -204,7 +232,7 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 						}
 					}
 				}
-			}
+			}*/
 		}
 		return contentValues;
 	}
@@ -320,6 +348,10 @@ public abstract class LDSQLiteHelper<T extends LDObject> extends
 				}
 				else if(sqliteType.equals(LDField.SQLITE_TYPE_DATE)){
 					m.invoke(entityInstance, cur.getLong(cur.getColumnIndex(field.getName())));
+				}
+				else if(sqliteType.equals(LDField.SQLITE_TYPE_BOOLEAN)){
+					Long longValue = cur.getLong(cur.getColumnIndex(field.getName()));
+					m.invoke(entityInstance, new Boolean(longValue.intValue()==0?false:true));
 				}
 			} catch (Exception e) {
 				Log.e(TAG, "Invocation exception (" + field.getName() + ")", e);
