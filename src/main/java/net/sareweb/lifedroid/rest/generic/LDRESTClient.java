@@ -1,12 +1,14 @@
-package net.sareweb.lifedroid.liferay.service.generic;
+package net.sareweb.lifedroid.rest.generic;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.ParameterizedType;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -27,39 +29,39 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 
-import net.sareweb.lifedroid.model.LDObject;
 import net.sareweb.lifedroid.model.User;
+import net.sareweb.lifedroid.model.generic.LDObject;
+import net.sareweb.lifedroid.rest.ConnectionData;
 import net.sareweb.lifedroid.util.LDConstants;
 
-public abstract class LDRESTService<T extends LDObject> {
+public abstract class LDRESTClient<T extends LDObject> {
 
-	public LDRESTService(String emailAddress, String password){
-
+	public LDRESTClient(ConnectionData connectionData){
+		this.connectionData=connectionData;
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 
 		httpClient.getCredentialsProvider().setCredentials(
-				new AuthScope(LDConstants.LIFERAY_SERVER_URL,
-						Integer.parseInt(LDConstants.LIFERAY_SERVER_PORT)),
-				new UsernamePasswordCredentials(emailAddress, password));
+				new AuthScope(connectionData.getServerURL(),
+						Integer.parseInt(connectionData.getPort())),
+				new UsernamePasswordCredentials(connectionData.getUser(), connectionData.getPass()));
 
 		requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 		
-		setPorltetContext();
-		composeServiceURI();
 	}
 
-	private void composeServiceURI() {
-		_serviceURI = LDConstants.LIFERAY_SERVER_PROTOCOL +
-				"://" + LDConstants.LIFERAY_SERVER_URL + 
-				":" + LDConstants.LIFERAY_SERVER_PORT;
-		if(!_portletContext.equals("")){
-			_serviceURI = _serviceURI + "/" + _portletContext;
+	public String getBaseURL() {
+		String baseURL = connectionData.getProtocol() +
+				"://" + connectionData.getServerURL() + 
+				":" + connectionData.getPort();
+		if(!getPorltetContext().equals("")){
+			baseURL = baseURL + "/" + getPorltetContext();
 		}
-		_serviceURI = _serviceURI + LDConstants.LIFERAY_SERVER_SERVICE_PATH;
-		
+		baseURL = baseURL + LDConstants.LIFERAY_JSON_WS_PATH;
+		if(!getModelName().equals("")){
+			baseURL = baseURL + "/" + getModelName();
+		}
+		return baseURL;
 	}
-	
-	public abstract void setPorltetContext();
 	
 	protected T run(String requestURL, HttpMethod method){
 		try {
@@ -129,15 +131,33 @@ public abstract class LDRESTService<T extends LDObject> {
 		}
 		return newRequestURL;
 	}
+	
+	protected String addParamToRequestURL(String requestURL, String paramName, Object value, boolean encode){
+		if(encode)
+			return addParamToRequestURL(requestURL, paramName, encode(value.toString()));
+		else
+			return addParamToRequestURL(requestURL, paramName, value);
+	}
 
 	protected T getObjectFromJsonString(String jsonString){
 		GsonBuilder gsonBuilder = new GsonBuilder(); 
 		return gsonBuilder.create().fromJson(jsonString, getTypeArgument());
 	}
 	
+	private String encode(String text){
+		try {
+			return URLEncoder.encode(text, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Log.e(TAG, "Error encoding text", e);
+			return null;
+		}
+	}
+	
+	public abstract String getPorltetContext();
+	public abstract String getModelName();
+	
 	protected HttpComponentsClientHttpRequestFactory requestFactory;
-	protected String _serviceURI;
-	protected String _portletContext="";
+	protected ConnectionData connectionData;
 	protected String TAG = "LDRESTService";
 
 }

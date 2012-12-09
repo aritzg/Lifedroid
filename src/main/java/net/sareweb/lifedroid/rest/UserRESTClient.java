@@ -1,38 +1,44 @@
-package net.sareweb.lifedroid.liferay.service;
+package net.sareweb.lifedroid.rest;
 
-import net.sareweb.lifedroid.liferay.service.generic.LDRESTService;
 import net.sareweb.lifedroid.model.User;
+import net.sareweb.lifedroid.rest.generic.LDRESTClient;
 import net.sareweb.lifedroid.util.LDConstants;
 
 import org.springframework.http.HttpMethod;
 
 import android.util.Log;
 
-public class UserRESTService extends LDRESTService<User> {
+public class UserRESTClient extends LDRESTClient<User> {
 
-	public UserRESTService(String emailAddress, String password) {
-		super(emailAddress, password);
+	public UserRESTClient(ConnectionData connectionData) {
+		super(connectionData);
 	}
 
 	public User getUserById(String userId) {
-		String requestURL = _serviceURI + "/user/get-user-by-id/userId/" + userId;
+		String requestURL = getBaseURL() +"/get-user-by-id/userId/" + userId;
 		return run(requestURL, HttpMethod.GET);
 	}
 	
 	public User getUserByEmailAddress(String emailAddress) {
-		String requestURL = _serviceURI + "/user/get-user-by-email-address/companyId/" + LDConstants.LIFERAY_COMPANY_ID + "/emailAddress/" + emailAddress;
+		String requestURL = getBaseURL() +"/get-user-by-email-address/companyId/" + connectionData.getCompanyId() + "/emailAddress/" + emailAddress;
 		Log.d(TAG, "Invoking GET " + requestURL);
 		return run(requestURL, HttpMethod.GET);
 	}
 	
-	public User addUser(long companyId, boolean autoPassword, String password1, String password2, 
+	public User getUserScreenName(String screenName) {
+		String requestURL = getBaseURL() +"/get-user-by-screen-name/company-id/" + connectionData.getCompanyId() + "/screen-name/" + screenName;
+		Log.d(TAG, "Invoking GET " + requestURL);
+		return run(requestURL, HttpMethod.GET);
+	}
+	
+	public User addUser(boolean autoPassword, String password1, String password2, 
 						boolean autoScreenName, String screenName, String emailAddress, long facebookId, 
 						String openId, String locale, String firstName, String middleName, 
 						String lastName, int prefixId, int suffixId, boolean male, int birthdayMonth, 
 						int birthdayDay, int birthdayYear, String jobTitle, long[] groupIds, 
 						long[] organizationIds, long[] roleIds, long[] userGroupIds, boolean sendEmail){ 
-		String requestURL = _serviceURI + "/user/add-user";
-		requestURL = addParamToRequestURL(requestURL, "companyId", companyId);
+		String requestURL = getBaseURL() +"/add-user";
+		requestURL = addParamToRequestURL(requestURL, "companyId", connectionData.getCompanyId());
 		requestURL = addParamToRequestURL(requestURL, "autoPassword", autoPassword);
 		requestURL = addParamToRequestURL(requestURL, "password1", password1);
 		requestURL = addParamToRequestURL(requestURL, "password2", password2);
@@ -63,8 +69,13 @@ public class UserRESTService extends LDRESTService<User> {
 	}
 	
 	@Override
-	public void setPorltetContext() {
-		
+	public String getPorltetContext() {
+		return ""; //Empty means portal itself
+	}
+
+	@Override
+	public String getModelName() {
+		return "user";
 	}
 
 }

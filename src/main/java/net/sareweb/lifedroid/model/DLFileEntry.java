@@ -1,6 +1,7 @@
 package net.sareweb.lifedroid.model;
 
 import net.sareweb.lifedroid.annotation.LDField;
+import net.sareweb.lifedroid.model.generic.LDObject;
 
 public class DLFileEntry extends LDObject{
 	

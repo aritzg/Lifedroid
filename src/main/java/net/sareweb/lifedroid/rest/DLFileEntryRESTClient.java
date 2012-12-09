@@ -1,7 +1,7 @@
-package net.sareweb.lifedroid.liferay.service;
+package net.sareweb.lifedroid.rest;
 
-import net.sareweb.lifedroid.liferay.service.generic.LDRESTService;
 import net.sareweb.lifedroid.model.DLFileEntry;
+import net.sareweb.lifedroid.rest.generic.LDRESTClient;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -11,16 +11,16 @@ import org.springframework.web.client.RestTemplate;
 
 import android.util.Log;
 
-public class DLFileEntryRESTService extends LDRESTService<DLFileEntry> {
+public class DLFileEntryRESTClient extends LDRESTClient<DLFileEntry> {
 
-	public DLFileEntryRESTService(String emailAddress, String password) {
-		super(emailAddress, password);
+	public DLFileEntryRESTClient(ConnectionData connectionData) {
+		super(connectionData);
 	}
 	
 	
 	public DLFileEntry addFileEntry(DLFileEntry dlFileEntry, String fileFolderPath) {
 		RestTemplate rt = new RestTemplate(requestFactory);
-		String requestURL = _serviceURI + "/dlapp/add-file-entry/";
+		String requestURL = getBaseURL() +"/add-file-entry/";
 
 		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<String, Object>();
 		
@@ -44,7 +44,7 @@ public class DLFileEntryRESTService extends LDRESTService<DLFileEntry> {
 	
 	public DLFileEntry updateFileEntry(DLFileEntry dlFileEntry, String fileFolderPath) {
 		RestTemplate rt = new RestTemplate(requestFactory);
-		String requestURL = _serviceURI + "/dlapp/update-file-entry";
+		String requestURL = getBaseURL() +"/update-file-entry";
 
 		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<String, Object>();
 		
@@ -68,7 +68,7 @@ public class DLFileEntryRESTService extends LDRESTService<DLFileEntry> {
 	public void deleteFileEntry(String fileEntryId) {
 		
 		RestTemplate rt = new RestTemplate(requestFactory);
-		String requestURL = _serviceURI + "/dlapp/delete-file-entry";
+		String requestURL = getBaseURL() +"/delete-file-entry";
 
 		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<String, Object>();
 		parts.add("fileEntryId", fileEntryId);
@@ -78,13 +78,16 @@ public class DLFileEntryRESTService extends LDRESTService<DLFileEntry> {
 		} catch (Exception e) {
 			Log.d(TAG, "Error deleting fileEntry", e);
 		}
-		
-	
 	}
 
 	@Override
-	public void setPorltetContext() {
-
+	public String getPorltetContext() {
+		return "";
+	}
+	
+	@Override
+	public String getModelName() {
+		return "dlapp";
 	}
 
 }

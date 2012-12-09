@@ -2,22 +2,18 @@ package net.sareweb.lifedroid.sqlite.generic;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import net.sareweb.lifedroid.annotation.LDEntity;
 import net.sareweb.lifedroid.annotation.LDField;
 import net.sareweb.lifedroid.exception.IntrospectionException;
-import net.sareweb.lifedroid.model.LDObject;
+import net.sareweb.lifedroid.model.generic.LDObject;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.omg.CORBA.OBJ_ADAPTER;
 
 import android.content.ContentValues;
 import android.content.Context;
