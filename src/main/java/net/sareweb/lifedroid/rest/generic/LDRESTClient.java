@@ -82,6 +82,25 @@ public abstract class LDRESTClient<T extends LDObject> {
 		} 
 	}
 	
+	protected boolean runForBoolean(String requestURL, HttpMethod method){
+		try {
+        	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();
+        	Writer writer = new StringWriter();
+        	char[] buffer = new char[1024];
+        	Reader reader = new BufferedReader(
+        	new InputStreamReader(response.getBody(), "UTF-8"));
+        	int n;
+        	while ((n = reader.read(buffer)) != -1) {
+        		writer.write(buffer, 0, n);
+        	}
+        	Log.d(TAG,writer.toString());
+        	return new Boolean(writer.toString());
+		} catch (Exception e) {
+			Log.d(TAG,"Error running get", e);
+			return false;
+		} 
+	}
+	
 	protected List<T> getList(String requestURL, HttpMethod method){
 		try {
         	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();

@@ -1,5 +1,6 @@
 package net.sareweb.lifedroid.model.generic;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -12,7 +13,7 @@ import org.apache.commons.lang.StringUtils;
 
 import android.util.Log;
 
-public abstract class LDObject<T> {
+public abstract class LDObject<T> implements Serializable {
 	
 	@LDField
 	private String objectStatus = LDSQLiteHelper.OBJECT_STATUS_NEW;
