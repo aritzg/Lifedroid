@@ -82,6 +82,25 @@ public abstract class LDRESTClient<T extends LDObject> {
 		} 
 	}
 	
+	protected Object runForObject(String requestURL, HttpMethod method, Class clazz){
+		try {
+        	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();
+        	Writer writer = new StringWriter();
+        	char[] buffer = new char[1024];
+        	Reader reader = new BufferedReader(
+        	new InputStreamReader(response.getBody(), "UTF-8"));
+        	int n;
+        	while ((n = reader.read(buffer)) != -1) {
+        		writer.write(buffer, 0, n);
+        	}
+        	Log.d(TAG,writer.toString());
+        	return getObjectFromJsonString(writer.toString(), clazz);
+		} catch (Exception e) {
+			Log.d(TAG,"Error running get", e);
+			return null;
+		} 
+	}
+	
 	protected boolean runForBoolean(String requestURL, HttpMethod method){
 		try {
         	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();
@@ -161,6 +180,11 @@ public abstract class LDRESTClient<T extends LDObject> {
 	protected T getObjectFromJsonString(String jsonString){
 		GsonBuilder gsonBuilder = new GsonBuilder(); 
 		return gsonBuilder.create().fromJson(jsonString, getTypeArgument());
+	}
+	
+	protected Object getObjectFromJsonString(String jsonString, Class clazz){
+		GsonBuilder gsonBuilder = new GsonBuilder(); 
+		return gsonBuilder.create().fromJson(jsonString, clazz);
 	}
 	
 	private String encode(String text){
