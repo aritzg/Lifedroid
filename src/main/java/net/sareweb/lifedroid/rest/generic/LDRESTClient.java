@@ -134,12 +134,50 @@ public abstract class LDRESTClient<T extends LDObject> {
         	Log.d(TAG,writer.toString());
         	JsonParser parser = new JsonParser();
         	
-        	JsonArray array = parser.parse(writer.toString()).getAsJsonArray();
-        	
         	List<T> result = new ArrayList<T>();
+        	String jsonString = writer.toString();
+        	if(jsonString.equals("{}"))return result;
+        	
+        	JsonArray array = parser.parse(jsonString).getAsJsonArray();
+        	
         	if(array!=null){
         		for (int i = 0; i<array.size(); i++) {
             		result.add(getObjectFromJsonString(array.get(i).toString()));
+    			}
+        	}
+        	
+        	return result;
+        	
+		} catch (Exception e) {
+			Log.d(TAG,"Error running getList", e);
+			return null;
+		} 
+	}
+	
+	protected List getList(String requestURL, HttpMethod method, Class clazz){
+		try {
+        	ClientHttpResponse response =   requestFactory.createRequest(new URI(requestURL), method).execute();
+        	Writer writer = new StringWriter();
+        	char[] buffer = new char[1024];
+        	Reader reader = new BufferedReader(
+        	new InputStreamReader(response.getBody(), "UTF-8"));
+        	int n;
+        	while ((n = reader.read(buffer)) != -1) {
+        		writer.write(buffer, 0, n);
+        	}
+        	Log.d(TAG,writer.toString());
+        	JsonParser parser = new JsonParser();
+        	
+        	List result = new ArrayList();
+        	String jsonString = writer.toString();
+        	if(jsonString.equals("{}"))return result;
+        	
+        	JsonArray array = parser.parse(jsonString).getAsJsonArray();
+        	
+        	
+        	if(array!=null){
+        		for (int i = 0; i<array.size(); i++) {
+            		result.add(getObjectFromJsonString(array.get(i).toString(),clazz));
     			}
         	}
         	
