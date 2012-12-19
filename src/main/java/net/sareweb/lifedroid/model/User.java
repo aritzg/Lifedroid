@@ -29,6 +29,10 @@ public class User extends LDObject{
 	@LDField(sqliteType=LDField.SQLITE_TYPE_INTEGER)
 	private Long contactId;
 
+	@LDField(sqliteType=LDField.SQLITE_TYPE_INTEGER)
+	private Long portraitId;
+
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -92,5 +96,13 @@ public class User extends LDObject{
 	public void setContactId(Long contactId) {
 		this.contactId = contactId;
 	}
-	
+
+	public Long getPortraitId() {
+		return portraitId;
+	}
+
+	public void setPortraitId(Long portraitId) {
+		this.portraitId = portraitId;
+	}
+
 }

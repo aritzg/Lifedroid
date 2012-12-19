@@ -2,7 +2,6 @@ package net.sareweb.lifedroid.rest;
 
 import net.sareweb.lifedroid.model.User;
 import net.sareweb.lifedroid.rest.generic.LDRESTClient;
-import net.sareweb.lifedroid.util.LDConstants;
 
 import org.springframework.http.HttpMethod;
 
