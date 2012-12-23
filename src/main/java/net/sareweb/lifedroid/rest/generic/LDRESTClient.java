@@ -38,7 +38,7 @@ public abstract class LDRESTClient<T extends LDObject> {
 
 	public LDRESTClient(ConnectionData connectionData){
 		this.connectionData=connectionData;
-		DefaultHttpClient httpClient = new DefaultHttpClient();
+		httpClient = new DefaultHttpClient();
 
 		httpClient.getCredentialsProvider().setCredentials(
 				new AuthScope(connectionData.getServerURL(),
@@ -256,6 +256,7 @@ public abstract class LDRESTClient<T extends LDObject> {
 	public abstract String getPorltetContext();
 	public abstract String getModelName();
 	
+	protected DefaultHttpClient httpClient;
 	protected HttpComponentsClientHttpRequestFactory requestFactory;
 	protected ConnectionData connectionData;
 	protected String TAG = "LDRESTService";
