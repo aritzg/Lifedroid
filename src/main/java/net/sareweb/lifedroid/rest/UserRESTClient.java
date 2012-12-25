@@ -13,8 +13,8 @@ public class UserRESTClient extends LDRESTClient<User> {
 		super(connectionData);
 	}
 
-	public User getUserById(String userId) {
-		String requestURL = getBaseURL() +"/get-user-by-id/userId/" + userId;
+	public User getUserById(long userId) {
+		String requestURL = getBaseURL() +"/get-user-by-id/user-id/" + userId;
 		return run(requestURL, HttpMethod.GET);
 	}
 	
