@@ -3,6 +3,13 @@ package net.sareweb.lifedroid.rest;
 import net.sareweb.lifedroid.model.User;
 import net.sareweb.lifedroid.rest.generic.LDRESTClient;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpMethod;
 
 import android.util.Log;
@@ -19,12 +26,12 @@ public class UserRESTClient extends LDRESTClient<User> {
 	}
 	
 	public User getUserByEmailAddress(String emailAddress) {
-		String requestURL = getBaseURL() +"/get-user-by-email-address/companyId/" + connectionData.getCompanyId() + "/emailAddress/" + emailAddress;
+		String requestURL = getBaseURL() +"/get-user-by-email-address/company-id/" + connectionData.getCompanyId() + "/email-address/" + emailAddress;
 		Log.d(TAG, "Invoking GET " + requestURL);
 		return run(requestURL, HttpMethod.GET);
 	}
 	
-	public User getUserScreenName(String screenName) {
+	public User getUserByScreenName(String screenName) {
 		String requestURL = getBaseURL() +"/get-user-by-screen-name/company-id/" + connectionData.getCompanyId() + "/screen-name/" + screenName;
 		Log.d(TAG, "Invoking GET " + requestURL);
 		return run(requestURL, HttpMethod.GET);
@@ -65,6 +72,40 @@ public class UserRESTClient extends LDRESTClient<User> {
 		requestURL = addParamToRequestURL(requestURL, "serviceContext", null);
 		Log.d(TAG, "Invoking POST " + requestURL);
 		return run(requestURL, HttpMethod.POST);
+	}
+	
+	public User updatePassword(long userId, String password1, String password2, boolean passwordReset) {
+		String requestURL = getBaseURL() +"/update-password";
+		requestURL = addParamToRequestURL(requestURL, "userId", userId);
+		requestURL = addParamToRequestURL(requestURL, "password1", password1);
+		requestURL = addParamToRequestURL(requestURL, "password2", password2);
+		requestURL = addParamToRequestURL(requestURL, "passwordReset", passwordReset);
+		Log.d(TAG, "Invoking GET " + requestURL);
+		return run(requestURL, HttpMethod.POST);
+	}
+	
+	public User updatePortrait(long userId, byte[] bytes){
+		try {
+			Log.d(TAG, "Updating portrait");
+	        String requestURL = getBaseURL() +"/update-portrait";
+	        HttpPost httppost = new HttpPost(requestURL);
+	        MultipartEntity reqEntity = new MultipartEntity();
+
+	        reqEntity.addPart("userId", new StringBody(String.valueOf(userId)));
+
+	        reqEntity.addPart("bytes", new StringBody(String.valueOf(userId)));
+	        //reqEntity.addPart("bytes", new ByteArrayBody(bytes, String.valueOf(userId)));
+
+	        httppost.setEntity(reqEntity);
+
+	         HttpResponse response = httpClient.execute(httppost);
+	         HttpEntity resEntity = response.getEntity();
+
+	        return getObjectFromJsonString(EntityUtils.toString(resEntity));
+	    } catch (Exception e) {
+	        Log.e(TAG, "Error updating portrait", e);
+	        return null;
+	    }
 	}
 	
 	@Override

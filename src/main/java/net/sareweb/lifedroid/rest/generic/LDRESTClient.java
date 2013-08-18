@@ -74,7 +74,6 @@ public abstract class LDRESTClient<T extends LDObject> {
         	while ((n = reader.read(buffer)) != -1) {
         		writer.write(buffer, 0, n);
         	}
-        	Log.d(TAG,writer.toString());
         	return getObjectFromJsonString(writer.toString());
 		} catch (Exception e) {
 			Log.d(TAG,"Error running get", e);
@@ -93,7 +92,6 @@ public abstract class LDRESTClient<T extends LDObject> {
         	while ((n = reader.read(buffer)) != -1) {
         		writer.write(buffer, 0, n);
         	}
-        	Log.d(TAG,writer.toString());
         	return getObjectFromJsonString(writer.toString(), clazz);
 		} catch (Exception e) {
 			Log.d(TAG,"Error running get", e);
@@ -112,7 +110,6 @@ public abstract class LDRESTClient<T extends LDObject> {
         	while ((n = reader.read(buffer)) != -1) {
         		writer.write(buffer, 0, n);
         	}
-        	Log.d(TAG,writer.toString());
         	return new Boolean(writer.toString());
 		} catch (Exception e) {
 			Log.d(TAG,"Error running get", e);
@@ -131,7 +128,6 @@ public abstract class LDRESTClient<T extends LDObject> {
         	while ((n = reader.read(buffer)) != -1) {
         		writer.write(buffer, 0, n);
         	}
-        	Log.d(TAG,writer.toString());
         	return new Double(writer.toString());
 		} catch (Exception e) {
 			Log.d(TAG,"Error running get", e);
@@ -150,7 +146,6 @@ public abstract class LDRESTClient<T extends LDObject> {
         	while ((n = reader.read(buffer)) != -1) {
         		writer.write(buffer, 0, n);
         	}
-        	Log.d(TAG,writer.toString());
         	JsonParser parser = new JsonParser();
         	
         	List<T> result = new ArrayList<T>();
@@ -184,7 +179,6 @@ public abstract class LDRESTClient<T extends LDObject> {
         	while ((n = reader.read(buffer)) != -1) {
         		writer.write(buffer, 0, n);
         	}
-        	Log.d(TAG,writer.toString());
         	JsonParser parser = new JsonParser();
         	
         	List result = new ArrayList();
